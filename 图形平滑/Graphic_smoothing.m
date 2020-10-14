@@ -12,5 +12,9 @@ noise_img_sp=imnoise(gray_img,'salt & pepper',0.1);
 noise_img_gs=imnoise(gray_img,'gaussian');
 % 添加高斯噪声
 
-M=1;
-m=2;
+med_img=median_filtering(noise_img_sp);
+
+figure;
+subplot(131);imshow(gray_img);
+subplot(132);imshow(noise_img_sp);
+subplot(133);imshow(med_img);
