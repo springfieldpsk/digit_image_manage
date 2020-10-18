@@ -1,5 +1,5 @@
-function [Filer_img,Filers_img] = Butterworth_Highpass(gray_img,d0,n)
-%BUTTERWORTH_HIGHPASS Butterworth��ͨ�˲���
+function [Filer_img,Filers_img] = Butterworth_Highpass(gray_img,d0,n,rh,rl)
+%BUTTERWORTH_HIGHPASS Butterworth低通滤波器
 %  H(u,v)=1/(1+(D(u,v)/D0)^(2*n))
 
 [r,c]=size(gray_img);
@@ -7,36 +7,36 @@ R=r*2;
 C=r*2;
 
 Filer_t_img=zeros(R,C);
-% ��ͼ�����0��䣬�õ���СΪP*Q��ͼ����Ҫ��Ϊ�˱�����ѭ�������г��ֵĲ��ƴ���
-% �����������С��ͬʱ��P��2m-1��Q��2n-1ʱ���Ա��⻷�ƴ���
-% ���ڶ���ż���ߴ�ľ�������丵��Ҷ�任�Ͽ죬���Pȡ2m��Qȡ2n��
+% 对图像进行0填充，得到大小为P*Q的图像，主要是为了避免在循环卷积中出现的缠绕错误。
+% 当两个矩阵大小相同时，P≥2m-1，Q≥2n-1时可以避免环绕错误。
+% 由于对于偶数尺寸的矩阵计算其傅里叶变换较快，因此P取2m，Q取2n。
 
 for i = 1:r
     for j = 1:c
         Filer_t_img(i,j) = double(gray_img(i,j)) * (-1)^(i+j);
     end
 end
-% ͼ�����(-1)^(x+y)���ٶ�ͼ����и���Ҷ�任���Եõ���ԭ���Ƶ����ĵĸ���Ҷ�任��
-% ����������F(u,v)��˵�����ĵ�Ƶ����ͣ����ܵ�Ƶ�ʽϸߡ�
-% ÿһ���ֵ��ʾ��Ƶ�ʶ��ڵķ��ȡ�
-% ��matlab�У�Ҳ���Բ�����(-1)^(x+y)��ֱ�Ӷ������ͼ����и���Ҷ�任��
-% ֮��ʹ��fftshift�������丵��Ҷ�任�������Ļ����õ��Ľ����һ���ġ�
+% 图像乘以(-1)^(x+y)，再对图像进行傅里叶变换可以得到将原点移到中心的傅里叶变换。
+% 这样，对于F(u,v)来说，中心的频率最低，四周的频率较高。
+% 每一点的值表示该频率对于的幅度。
+% 在matlab中，也可以不乘以(-1)^(x+y)，直接对填充后的图像进行傅里叶变换，
+% 之后使用fftshift函数对其傅里叶变换进行中心化。得到的结果是一样的。
 
-Filer_t_img = fft2(Filer_t_img); % ���ٸ���Ҷ�任
+Filer_t_img = fft2(Filer_t_img); % 快速傅里叶变换
 h=zeros(R,C);
-d02n=d0^(2*n); % Ԥ����
+d02n=d0^(2*n); % 预处理
 for i = 1:R
     for j = 1:C
         D=(i-(r+1))^2+(j-(c+1))^2;
-        h(i,j)=1/(1+(D^n)/d02n);
+        h(i,j)=(rh-rl)*(1/(1+(D^n)/d02n))+rl;
     end
 end
-% �����˲���������ʱͼ�����ĵ�Ϊ(r+1,c+1)
+% 生成滤波函数，此时图形中心点为(r+1,c+1)
 
-Filer_t_img = Filer_t_img .* h; % �����˲�
-Filers_img = Filer_t_img; % �õ���Ƶ���Ѿ������Ļ�����
+Filer_t_img = Filer_t_img .* h; % 进行滤波
+Filers_img = Filer_t_img; % 得到的频谱已经过中心化处理
 
-Filer_t_img = real(ifft2(Filer_t_img)); % ��fft ��Ƶ��ת��Ϊͼ����
+Filer_t_img = ifft2(Filer_t_img); % 反fft 由频域转换为图像域
 Filer_img=zeros(r,c);
 
 for i = 1:r
@@ -45,7 +45,7 @@ for i = 1:r
     end
 end
 
-% ��fft ��Ƶ��ת��Ϊͼ����
+% 反fft 由频域转换为图像域
 
 end
 
