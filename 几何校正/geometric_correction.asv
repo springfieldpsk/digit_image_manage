@@ -1,0 +1,47 @@
+% 几何校正是通过畸变图像与正确图像上的多个相同点，以建立相应的坐标映射，以
+% 使得图像的几何关系得到改正
+clc
+clear 
+close all
+
+tic
+Org_img=imread('lena_distort.png');
+model_img=imread('../lena.tiff');
+Gray_img=rgb2gray(Org_img);
+
+Mode = 2;
+
+if Mode == 1 
+    [Org_x,Org_y]=readpt(Org_img,4);
+    [model_x,model_y]=readpt(model_img,4);
+else 
+    model_x=[512,410,102,1];
+    model_y=[1,512,410,128];
+    Org_x=[512;512;1;512];
+    Org_y=[1;512;512;1];
+end 
+
+model=build(model_x,model_y);
+
+A=model\Org_x;
+B=model\Org_y;
+
+[n,m]=size(Org_img);
+[N,M]=size(model_img);
+del_img=zeros(N,M,3);
+
+for x = 1:n
+    for y = 1:m
+        if sum(Org_img(x,y,:))~=0
+            tmp=[x*y,x,y,1];
+            x_=round(tmp*A);
+            y_=round(tmp*B);
+            
+        end
+    end
+end
+
+% figure;
+% imshow(del_img);
+
+toc
