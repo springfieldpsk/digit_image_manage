@@ -23,18 +23,20 @@ while abs(code) > sqrt(eps) % 反复迭代逼近eps
     l = 1 ;
     r = length(qq) -1;
     
-    while l < r 
+    while l <= r 
         mid = bitshift(l+r, -1);
         if (nowc >= qq(mid)) 
-            r = mid - 1;
+            l = mid + 1;
             p = mid;
         else
-            l = mid + 1;
+            r = mid - 1;
         end
     end 
-
+    % 二分搜索p
+    
     mesg = [mesg p];
     code = (qq(p+1)-qq(p))\(code-qq(p)); 
+    % 反推编码
 end
 
 end

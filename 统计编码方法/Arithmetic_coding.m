@@ -7,7 +7,7 @@ qq = [0,cumsum(p)];
 q = qq;
 % 计算数组 存储子区间压缩码
 
-for i = 1 :length(s)
+for i = 1 :length(s)-1
     q = (q(s(i)+1)-q(s(i)))*qq + q(s(i)); 
     % 根据子区间长度 递推计算
 end
